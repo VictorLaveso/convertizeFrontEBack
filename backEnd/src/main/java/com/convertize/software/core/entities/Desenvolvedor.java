@@ -19,5 +19,6 @@ public class Desenvolvedor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String login;
+    private String fotoCampo;
     private long valorUsuario;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Space, Input, InputNumber, Button, Row, Col, Avatar, Divider, Checkbox } from 'antd';
+import { Table, Input, InputNumber, Button, Row, Col, Avatar, Divider, Checkbox, Upload } from 'antd';
 import { UserOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 
@@ -7,10 +7,21 @@ function App() {
   const [inputs, setInputs] = useState([{ usernameCampo: "", precoCampo: "", fotoCampo: "" }])
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [tamanhoDaPagina, setTamanhoPaginaAtual] = useState(10)
-  const [checked, setChecked] = useState();
+  const [checked, setChecked] = useState(false);
   const [list, setList] = useState([]);
 
   const columns = [
+    {
+      title: 'Foto',
+      dataIndex: 'fotoCampo',
+      key: 'fotoCampo',
+      render: (fotoCampo) =>
+      fotoCampo ? (
+        <Avatar shape="square" size="large" src={fotoCampo} />
+      ) : (
+        <Avatar shape="square" size="large" icon={<UserOutlined />} />
+      ),
+    },
     {
       title: 'Username',
       dataIndex: 'login',
@@ -21,16 +32,14 @@ function App() {
       title: 'Preço',
       dataIndex: 'valorUsuario',
       key: 'valorUsuario',
-      render: text => <a>{text}</a>,
+      render: text => <a>R$ {text}</a>,
     },
 
     {
       title: '',
       key: 'action',
       render: (_, record) => (
-        <Space size="middle">
-          <Button onClick={() => deletarDesenvolvedor(record)} style={{ backgroundColor: "#c9302c", borderColor: "#d43f3a", color: "#fff" }}>Delete</Button>
-        </Space>
+        <Button onClick={() => deletarDesenvolvedor(record)} style={{ backgroundColor: "#c9302c", borderColor: "#d43f3a", color: "#fff" }}>Delete</Button>
       ),
     },
   ];
@@ -62,7 +71,7 @@ async function adicionarAoCarrinho() {
     try {
       if (checked) {
         const resultados = await Promise.all(
-          inputs.map(async (item, i) => {
+          inputs.map(async (item) => {
             let valorUsuario = 0;
 
             const response = await fetch(`https://api.github.com/users/${item.usernameCampo}`)
@@ -72,19 +81,21 @@ async function adicionarAoCarrinho() {
             }
 
             const dados = await response.json();
-            dados.key = i;
+            
             valorUsuario = dados.followers * 10 + (dados.email != null ? +10 : +0) + dados.public_gists * 10 + dados.public_repos * 10;
             dados.valorUsuario = valorUsuario;
-            criarDesenvolvedor(item.usernameCampo, valorUsuario);
+            dados.fotoCampo = dados.avatar_url;
+            const desenvolvedor = await criarDesenvolvedor(item.usernameCampo, valorUsuario, dados.avatar_url);
+            dados.key = desenvolvedor.id;
             return dados;
           }))
             setList(prev => [...prev, ...resultados]);
             return resultados;
       } else {
         const  resultados = await Promise.all(
-          inputs.map(async (item, i) => {
-            const dados = await criarDesenvolvedor(item.usernameCampo, item.precoCampo);
-            dados.key = i;
+          inputs.map(async (item) => {
+            const dados = await criarDesenvolvedor(item.usernameCampo, item.precoCampo, null);
+            dados.key = dados.id;
             dados.id = dados.id;
             dados.login = dados.login;
             dados.valorUsuario = dados.valorUsuario;
@@ -99,12 +110,12 @@ async function adicionarAoCarrinho() {
     }
   }
 
-async function criarDesenvolvedor(login, valorUsuario) {
+async function criarDesenvolvedor(login, valorUsuario, fotoCampo) {
   const body = {
     login: login,
-    valorUsuario: valorUsuario
+    valorUsuario: valorUsuario,
+    fotoCampo: fotoCampo
   };
-
   try {
     const response = await fetch("http://localhost:8080/desenvolvedores", {
       method: "POST",
@@ -113,17 +124,13 @@ async function criarDesenvolvedor(login, valorUsuario) {
       },
       body: JSON.stringify(body),
     });
-
     const data = await response.json();
     console.log("Criado:", data);
     return data;
   } catch (error) {
     console.log("Não foi possivel adicionar o login ao backend:", error);
-    return null;
+    return body;
   }
-  
-
-  
 }
 
 async function buscarDesenvolvedores() {
@@ -163,7 +170,21 @@ async function fetchData() {
     } else {
         setList([]);
     }
-    
+}
+
+async function finalizarCompra() {
+    alert("Pedido confirmado com sucesso!");
+    setList([]);
+    try {
+        for (const item of list) {
+            await deletarDesenvolvedor(item);
+        }
+
+        setList([]);
+
+    } catch (error) {
+        console.error("Erro ao finalizar compra:", error);
+    }
 }
 
 useEffect(() => {
@@ -178,8 +199,8 @@ return (
 
       <Row gutter={10}>
         <Col>
-          <Button type="primary" style={{ backgroundColor: "#5cb85c", borderColor: "4cae4c", color: "#fff" }
-          } onClick={adicionarAoCarrinho}>Adicionar ao carrinho</Button>
+          <Button type="primary" style={{ backgroundColor: "#5cb85c", borderColor: "4cae4c", color: "#fff" }}
+          onClick={adicionarAoCarrinho}>Adicionar ao carrinho</Button>
         </Col>
         <Col>
           <Button type="primary" onClick={adicionar}><PlusCircleOutlined /></Button>
@@ -216,11 +237,27 @@ return (
       <Divider></Divider>
       <br></br>
       <h1>Carrinho</h1>
-      <Table columns={columns} dataSource={list} pagination={{current: paginaAtual, pageSize: tamanhoDaPagina, total: list.length, onChange: (paginaAtual, tamanhoDaPagina) =>  {
+      <Table 
+      columns={columns}
+      dataSource={list}
+      pagination={{current: paginaAtual, pageSize: tamanhoDaPagina, total: list.length, onChange: (paginaAtual, tamanhoDaPagina) =>  {
         setPaginaAtual(paginaAtual);
         setTamanhoPaginaAtual(tamanhoDaPagina);
-      }}}></Table>
+      }}}
+      footer={() => {
+        let valorTotal = 0;
+        list.forEach(item => {
+          valorTotal += item.valorUsuario;
+        });
+        return (
+          <strong>Valor Total: R${valorTotal}</strong>
+        );
+      }}></Table>
       <br></br>
+      <Row justify="end">
+        <Button onClick={() => finalizarCompra()}
+        type="primary" style={{ backgroundColor: "#4c994cff", borderColor: "4cae4c", color: "#fff" }}>Comprar</Button>
+      </Row>
     </div>
   </>
 );

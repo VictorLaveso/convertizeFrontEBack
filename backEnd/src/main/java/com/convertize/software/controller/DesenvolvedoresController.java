@@ -41,5 +41,10 @@ public class DesenvolvedoresController {
         return ResponseEntity.accepted().build();
     }
 
+    @DeleteMapping
+    public ResponseEntity<Void> deletarDesenvolvedores() {
+        desenvolvedorService.cancelarTodos();
+        return ResponseEntity.accepted().build();
+    }
 
 }

@@ -29,6 +29,7 @@ public class DesenvolvedorService {
             .map(dev -> new DesenvolvedoresRecordOut(
                     dev.getId(),
                     dev.getLogin(),
+                    dev.getFotoCampo(),
                     dev.getValorUsuario()
             ))
             .toList();
@@ -36,5 +37,9 @@ public class DesenvolvedorService {
 
     public void cancelar(long id) {
         repository.deleteById(id);
+    }
+
+    public void cancelarTodos() {
+        repository.deleteAll();
     }
 }
