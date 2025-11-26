@@ -4,6 +4,7 @@ import { UserOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 
 function App() {
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
   const [inputs, setInputs] = useState([{ usernameCampo: "", precoCampo: "", fotoCampo: "" }])
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [tamanhoDaPagina, setTamanhoPaginaAtual] = useState(10)
@@ -117,7 +118,7 @@ async function criarDesenvolvedor(login, valorUsuario, fotoCampo) {
     fotoCampo: fotoCampo
   };
   try {
-    const response = await fetch("http://localhost:8080/desenvolvedores", {
+    const response = await fetch(`${API_URL}/desenvolvedores`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -135,7 +136,7 @@ async function criarDesenvolvedor(login, valorUsuario, fotoCampo) {
 
 async function buscarDesenvolvedores() {
     try {
-        const response = await fetch(`http://localhost:8080/desenvolvedores`, {
+        const response = await fetch(`${API_URL}/desenvolvedores`, {
             method: "GET"
         });
 
@@ -150,7 +151,7 @@ async function buscarDesenvolvedores() {
 async function deletarDesenvolvedor(record) {
     setList(prev => prev.filter(item => item.id !== record.id));
     try {
-        await fetch(`http://localhost:8080/desenvolvedores/${record.id}`, {
+        await fetch(`${API_URL}/desenvolvedores/${record.id}`, {
           method: "DELETE"
         });
     } catch (error) {
