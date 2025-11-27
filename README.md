@@ -2,7 +2,7 @@ O front está dentro da pasta software e o back dentro da pasta backend.
 
 O front funciona sem o back, mas os valores não são guardados em memoria e por padrão gera erro apenas no log. 
 
-Para rodar o front basta rodar cd software e por fim npm start.
+Para rodar o front basta rodar cd software e por fim npm start ou https://convertizeprojeto.web.app/.
 Para rodar o back basta rodar cd backEnd e por fim .\gradlew bootRun.
 
 Escolhi os 3 primeiros itens:
