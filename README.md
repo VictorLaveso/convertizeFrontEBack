@@ -3,7 +3,7 @@ O front está dentro da pasta software e o back dentro da pasta backend.
 O front funciona sem o back, mas os valores não são guardados em memoria e por padrão gera erro apenas no log. 
 
 Para rodar o front basta rodar cd software e por fim npm start ou https://convertizeprojeto.web.app/.
-Para rodar o back basta rodar cd backEnd e por fim .\gradlew bootRun.
+Para rodar o back basta rodar cd backEnd e por fim .\gradlew bootRun ou https://backend-939318273734.southamerica-east1.run.app.
 
 Escolhi os 3 primeiros itens:
 -Determinar o preço do desenvolvedor a partir de informações do seu perfil do GitHub, como por exemplo: followers, repos, stars, commits, etc.
